@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                Welcome, {{ session.get('admin_user', 'ADMIN') | upper  }} 👋
+            </h4>
+            <p class="text-muted small mb-0">
+                <i class="fas fa-calendar me-1"></i> {{ today }}
+            </p>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold fs-4 text-primary"
+                 id="live-clock">00:00:00</div>
+            <small class="text-muted">Live Clock</small>
+        </div>
+    </div>
+
+    <!-- ✅ Top Stats Row -->
+    <div class="row g-3 mb-4">
+
+        <!-- Total Students -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center py-4">
+                    <div class="mb-2">
+                        <i class="fas fa-users fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold text-primary mb-0">
+                        {{ stats.total_students }}
+                    </h3>
+                    <p class="text-muted small mb-0">Total Students</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Present Today -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center py-4">
+                    <div class="mb-2">
+                        <i class="fas fa-user-check fa-2x text-success"></i>
+                    </div>
+                    <h3 class="fw-bold text-success mb-0">
+                        {{ stats.present_today }}
+                    </h3>
+                    <p class="text-muted small mb-0">Present Today</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Absent Today -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center py-4">
+                    <div class="mb-2">
+                        <i class="fas fa-user-times fa-2x text-danger"></i>
+                    </div>
+                    <h3 class="fw-bold text-danger mb-0">
+                        {{ stats.total_students - stats.present_today }}
+                    </h3>
+                    <p class="text-muted small mb-0">Absent Today</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall % -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center py-4">
+                    <div class="mb-2">
+                        <i class="fas fa-chart-pie fa-2x text-info"></i>
+                    </div>
+                    <h3 class="fw-bold text-info mb-0">
+                        {% if stats.total_students > 0 %}
+                            {{ ((stats.present_today / stats.total_students)
+                                * 100) | round(1) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted small mb-0">
+                        Today's Attendance %
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ✅ Branch wise Attendance -->
+    {% if stats.branch_stats %}
+
+        {% for branch in stats.branch_stats %}
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+
+            <!-- Branch Header -->
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex justify-content-between
+                            align-items-center flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            {{ branch.department | e }}
+                        </h5>
+                        <small class="text-muted">
+                            Total: {{ branch.total }} students
+                            &nbsp;|&nbsp;
+                            Present: {{ branch.present }}
+                            &nbsp;|&nbsp;
+                            Absent: {{ branch.absent }}
+                        </small>
+                    </div>
+
+                    <!-- Branch overall % badge -->
+                    <div>
+                        {% if branch.percentage >= 75 %}
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                {{ branch.percentage }}%
+                            </span>
+                        {% elif branch.percentage >= 50 %}
+                            <span class="badge bg-warning text-dark
+                                         fs-6 px-3 py-2">
+                                {{ branch.percentage }}%
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger fs-6 px-3 py-2">
+                                {{ branch.percentage }}%
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Branch progress bar -->
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar
+                        {% if branch.percentage >= 75 %}bg-success
+                        {% elif branch.percentage >= 50 %}bg-warning
+                        {% else %}bg-danger{% endif %}"
+                        role="progressbar"
+                        style="width: {{ branch.percentage }}%"
+                        aria-valuenow="{{ branch.percentage }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Semester wise breakdown -->
+            <div class="card-body p-3">
+                <div class="row g-3">
+
+                    {% for sem in branch.semesters %}
+                    <div class="col-md-4 col-sm-6">
+                        <div class="card border rounded-3 h-100
+                            {% if sem.percentage >= 75 %}
+                                border-success-subtle
+                            {% elif sem.percentage >= 50 %}
+                                border-warning-subtle
+                            {% else %}
+                                border-danger-subtle
+                            {% endif %}">
+
+                            <div class="card-body py-3 px-3">
+
+                                <!-- Semester header -->
+                                <div class="d-flex justify-content-between
+                                            align-items-center mb-2">
+                                    <span class="fw-bold text-dark">
+                                        <i class="fas fa-graduation-cap
+                                                  me-1 text-primary"></i>
+                                        Semester {{ sem.semester }}
+                                    </span>
+                                    {% if sem.percentage >= 75 %}
+                                        <span class="badge bg-success px-2">
+                                            {{ sem.percentage }}%
+                                        </span>
+                                    {% elif sem.percentage >= 50 %}
+                                        <span class="badge bg-warning
+                                                     text-dark px-2">
+                                            {{ sem.percentage }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger px-2">
+                                            {{ sem.percentage }}%
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Stats row -->
+                                <div class="d-flex justify-content-between
+                                            text-center mb-2">
+                                    <div>
+                                        <div class="fw-bold text-primary">
+                                            {{ sem.total }}
+                                        </div>
+                                        <div class="text-muted"
+                                             style="font-size:11px">
+                                            Total
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-success">
+                                            {{ sem.present }}
+                                        </div>
+                                        <div class="text-muted"
+                                             style="font-size:11px">
+                                            Present
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-danger">
+                                            {{ sem.absent }}
+                                        </div>
+                                        <div class="text-muted"
+                                             style="font-size:11px">
+                                            Absent
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Progress bar -->
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar
+                                        {% if sem.percentage >= 75 %}
+                                            bg-success
+                                        {% elif sem.percentage >= 50 %}
+                                            bg-warning
+                                        {% else %}
+                                            bg-danger
+                                        {% endif %}"
+                                        role="progressbar"
+                                        style="width: {{ sem.percentage }}%"
+                                        aria-valuenow="{{ sem.percentage }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <!-- ✅ No data state -->
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="fas fa-chart-bar fa-3x mb-3 d-block opacity-25"></i>
+                <h5>No attendance data yet</h5>
+                <p class="small mb-3">
+                    Register students and take attendance
+                    to see stats here.
+                </p>
+                <a href="{{ url_for('registration.registration_page') }}"
+                   class="btn btn-primary btn-sm">
+                    <i class="fas fa-user-plus me-1"></i>
+                    Register Students
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<!-- =============================
+     CHATBOT WIDGET
+============================== -->
+<div id="chatbot-container" style="
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    font-family: 'Segoe UI', sans-serif;">
+
+    <!-- Toggle Button -->
+    <button id="chatbot-toggle"
+            onclick="toggleChat()"
+            aria-label="Open attendance assistant"
+            style="
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(13,110,253,0.4);
+                transition: transform 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;">
+        <i class="fas fa-user-graduate"></i>
+    </button>
+
+    <!-- Chat Box -->
+    <div id="chatbot-box" style="
+        display: none;
+        width: 340px;
+        height: 480px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        flex-direction: column;
+        overflow: hidden;
+        margin-bottom: 12px;
+        position: absolute;
+        bottom: 72px;
+        right: 0;">
+
+        <!-- Header -->
+        <div style="
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            padding: 16px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="
+                    width: 40px; height: 40px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 700; font-size: 15px;">
+                        Attendance Assistant
+                    </div>
+                    <div style="font-size: 11px; opacity: 0.85;">
+                        <span style="
+                            width: 8px; height: 8px;
+                            background: #4ade80;
+                            border-radius: 50%;
+                            display: inline-block;
+                            margin-right: 4px;">
+                        </span>
+                        Online
+                    </div>
+                </div>
+            </div>
+            <button onclick="toggleChat()"
+                    aria-label="Close chat"
+                    style="
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 18px;
+                        cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Messages -->
+        <div id="chat-messages" style="
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 340px;">
+
+            <div class="bot-msg" style="
+                background: white;
+                border-radius: 12px 12px 12px 2px;
+                padding: 10px 14px;
+                font-size: 13px;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+                max-width: 85%;
+                line-height: 1.5;">
+                👋 Hello! I am your
+                <strong>Attendance Assistant</strong>.<br><br>
+                Type <code>help</code> to see what I can do!
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div style="
+            padding: 12px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;">
+            <input type="text"
+                   id="chat-input"
+                   placeholder="Type a message..."
+                   maxlength="200"
+                   onkeydown="if(event.key==='Enter') sendMessage()"
+                   aria-label="Chat message input"
+                   style="
+                       flex: 1;
+                       border: 1px solid #dee2e6;
+                       border-radius: 20px;
+                       padding: 8px 16px;
+                       font-size: 13px;
+                       outline: none;">
+            <button onclick="sendMessage()"
+                    aria-label="Send message"
+                    style="
+                        width: 38px; height: 38px;
+                        background: #0d6efd;
+                        border: none;
+                        border-radius: 50%;
+                        color: white;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;">
+                <i class="fas fa-paper-plane"
+                   style="font-size: 13px;"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleChat() {
+    const box = document.getElementById('chatbot-box');
+    const isHidden = box.style.display === 'none' ||
+                     box.style.display === '';
+    box.style.display = isHidden ? 'flex' : 'none';
+    if (isHidden) {
+        document.getElementById('chat-input').focus();
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // ✅ Max length check
+    if (message.length > 200) {
+        appendMessage(
+            'Message too long. Max 200 characters.',
+            'bot', 'error'
+        );
+        return;
+    }
+
+    appendMessage(message, 'user');
+    input.value = '';
+
+    const typingId = appendTyping();
+
+    try {
+        const response = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        removeTyping(typingId);
+
+        if (data.status === 'success') {
+            appendMessage(data.message, 'bot', data.type);
+        } else {
+            appendMessage(
+                'Sorry, something went wrong.',
+                'bot', 'error'
+            );
+        }
+
+    } catch (err) {
+        removeTyping(typingId);
+        appendMessage(
+            'Connection error. Please try again.',
+            'bot', 'error'
+        );
+    }
+}
+
+function appendMessage(text, sender, type = 'info') {
+    const container = document.getElementById('chat-messages');
+
+    const colorMap = {
+        success: '#d1fae5',
+        warning: '#fef9c3',
+        error:   '#fee2e2',
+        info:    'white'
+    };
+
+    const div = document.createElement('div');
+
+    if (sender === 'user') {
+        div.style.cssText = `
+            background: #0d6efd;
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+            max-width: 85%;
+            align-self: flex-end;
+            margin-left: auto;
+            line-height: 1.5;
+        `;
+    } else {
+        div.style.cssText = `
+            background: ${colorMap[type] || 'white'};
+            border-radius: 12px 12px 12px 2px;
+            padding: 10px 14px;
+            font-size: 13px;
+            max-width: 85%;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            line-height: 1.5;
+            white-space: pre-line;
+        `;
+    }
+
+    // ✅ Use textContent not innerHTML to prevent XSS
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+}
+
+function appendTyping() {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.id = 'typing-indicator';
+    div.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 13px;
+        max-width: 85%;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        color: #999;
+    `;
+    div.innerHTML =
+        '<i class="fas fa-circle-notch fa-spin me-1"></i> Typing...';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div.id;
+}
+
+function removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- LEFT: FORM -->
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4">
+
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-user-plus me-2"></i>
+                        New Student Enrollment
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- Alert container for JS messages -->
+                    <div id="alertContainer"></div>
+
+                    <form id="registrationForm" autocomplete="off"
+                          novalidate>
+
+                        <!-- Student ID -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Student ID / Roll No
+                            </label>
+                            <input type="text"
+                                   name="student_id"
+                                   id="student_id"
+                                   class="form-control"
+                                   placeholder="e.g. 21001"
+                                   maxlength="20"
+                                   pattern="[a-zA-Z0-9_\-]+"
+                                   required>
+                            <div class="form-text text-muted small">
+                                Only letters, numbers, - and _ allowed.
+                            </div>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Full Name
+                            </label>
+                            <input type="text"
+                                   name="name"
+                                   id="name"
+                                   class="form-control"
+                                   placeholder="Student's name"
+                                   maxlength="100"
+                                   pattern="[a-zA-Z\s]+"
+                                   required>
+                        </div>
+
+                        <!-- Father Name -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Father's Name
+                            </label>
+                            <input type="text"
+                                   name="father_name"
+                                   id="father_name"
+                                   class="form-control"
+                                   placeholder="Father's name"
+                                   maxlength="100">
+                        </div>
+
+                        <div class="row">
+
+                            <!-- Department -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Department
+                                </label>
+                                <select name="department"
+                                        class="form-select"
+                                        required>
+                                    <option value="">Select</option>
+                                    <option value="Computer Science">
+                                        Computer Science
+                                    </option>
+                                    <option value="Electrical">
+                                        Electrical
+                                    </option>
+                                    <option value="Mechanical">
+                                        Mechanical
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Mobile -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Mobile No.
+                                </label>
+                                <input type="tel"
+                                       name="mobile_number"
+                                       id="mobile_number"
+                                       class="form-control"
+                                       pattern="[0-9]{10}"
+                                       maxlength="10"
+                                       placeholder="10 digit number">
+                            </div>
+
+                        </div>
+
+                        <!-- Year + Semester -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Year
+                                </label>
+                                <select name="year"
+                                        class="form-select"
+                                        required>
+                                    <option value="">Select</option>
+                                    <option value="1">1st Year</option>
+                                    <option value="2">2nd Year</option>
+                                    <option value="3">3rd Year</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Semester
+                                </label>
+                                <select name="semester"
+                                        class="form-select"
+                                        required>
+                                    <option value="">Select</option>
+                                    <option value="1">Sem 1</option>
+                                    <option value="2">Sem 2</option>
+                                    <option value="3">Sem 3</option>
+                                    <option value="4">Sem 4</option>
+                                    <option value="5">Sem 5</option>
+                                    <option value="6">Sem 6</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit"
+                                    id="submitBtn"
+                                    class="btn btn-primary btn-lg
+                                           fw-bold shadow-sm">
+                                <i class="fas fa-camera me-2"></i>
+                                Capture & Register
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: CAMERA -->
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0 bg-dark
+                        text-white rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white py-2
+                            d-flex justify-content-between
+                            align-items-center">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-camera me-2 text-primary"></i>
+                        Live Camera Preview
+                    </h6>
+                    <!-- ✅ Camera status indicator -->
+                    <span id="cam-status"
+                          class="badge bg-success px-2 py-1 small">
+                        <i class="fas fa-circle me-1"
+                           style="font-size:7px"></i>
+                        Live
+                    </span>
+                </div>
+
+                <div class="card-body p-0 position-relative"
+                     style="height: 400px; overflow: hidden;">
+
+                    <!-- ✅ Pass URL via data attribute — no src yet -->
+                    <img id="camera-stream"
+                         data-url="{{ url_for('attendance.video_feed') }}"
+                         alt="Camera preview for face capture"
+                         style="width:100%; height:400px;
+                                object-fit:cover; display:block;">
+
+                    <!-- ✅ Camera error overlay -->
+                    <div id="cam-error"
+                         class="d-none position-absolute top-50
+                                start-50 translate-middle
+                                text-center text-white">
+                        <i class="fas fa-video-slash fa-3x mb-2"></i>
+                        <p class="fw-bold small">Camera unavailable</p>
+                    </div>
+
+                    <!-- ✅ Capturing overlay — shown during face capture -->
+                    <div id="capture-overlay"
+                         class="d-none position-absolute top-0
+                                start-0 w-100 h-100 d-flex
+                                flex-column align-items-center
+                                justify-content-center text-white"
+                         style="background: rgba(0,0,0,0.7);
+                                z-index: 10;">
+                        <i class="fas fa-camera fa-3x mb-3
+                                  text-primary"></i>
+                        <h5 class="fw-bold" id="capture-msg">
+                            Preparing camera...
+                        </h5>
+                        <p class="small text-muted mt-2">
+                            Please look straight at the camera
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Status -->
+                <div class="card-footer bg-dark border-top
+                            border-secondary text-center py-2">
+                    <div class="alert alert-info py-2 small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Submit dabate hi system auto-capture karega
+                        aur face encode karega.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const camImg = document.getElementById('camera-stream');
+    const camStatus = document.getElementById('cam-status');
+    const camError = document.getElementById('cam-error');
+    const captureOverlay = document.getElementById('capture-overlay');
+    const captureMsg = document.getElementById('capture-msg');
+
+    // ✅ Start camera after page loads
+    function startCamera() {
+        if (!camImg) return;
+        const url = camImg.dataset.url;
+        camImg.src = url + '?' + new Date().getTime();
+
+        if (camStatus) {
+            camStatus.className = 'badge bg-success px-2 py-1 small';
+            camStatus.innerHTML =
+                '<i class="fas fa-circle me-1" ' +
+                'style="font-size:7px"></i> Live';
+        }
+
+        camImg.onerror = () => {
+            if (camError) camError.classList.remove('d-none');
+            if (camStatus) {
+                camStatus.className = 'badge bg-danger px-2 py-1 small';
+                camStatus.innerHTML =
+                    '<i class="fas fa-circle me-1" ' +
+                    'style="font-size:7px"></i> Error';
+            }
+        };
+    }
+
+    // ✅ Stop camera stream
+    function stopCamera() {
+        if (camImg) camImg.src = '';
+        if (camStatus) {
+            camStatus.className = 'badge bg-secondary px-2 py-1 small';
+            camStatus.innerHTML =
+                '<i class="fas fa-circle me-1" ' +
+                'style="font-size:7px"></i> Stopped';
+        }
+        navigator.sendBeacon('/stop_camera');
+    }
+
+    // ✅ Show capture overlay
+    function showCaptureOverlay(message) {
+        if (captureOverlay) {
+            captureOverlay.classList.remove('d-none');
+            captureOverlay.style.display = 'flex';
+        }
+        if (captureMsg) captureMsg.textContent = message;
+    }
+
+    // ✅ Hide capture overlay
+    function hideCaptureOverlay() {
+        if (captureOverlay) {
+            captureOverlay.classList.add('d-none');
+            captureOverlay.style.display = 'none';
+        }
+    }
+
+    window.addEventListener('load', () => {
+        setTimeout(startCamera, 500);
+    });
+
+    window.addEventListener('beforeunload', () => {
+        stopCamera();
+    });
+</script>
+
+<script src="{{ url_for('static', filename='js/registration.js') }}"></script>
+
+{% endblock %}

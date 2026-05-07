@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    #video-stream {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 12px;
+    }
+
+    .camera-wrapper {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .live-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: rgba(220, 53, 69, 0.85);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+        z-index: 10;
+        animation: pulse 1.5s infinite;
+    }
+
+    .clock-display {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #0d6efd;
+        letter-spacing: 2px;
+    }
+
+    @keyframes pulse {
+        0%   { opacity: 1; }
+        50%  { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .log-item {
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-10px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .attendance-toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        min-width: 280px;
+    }
+
+    /* ✅ Admin exit button hidden until hover */
+    #adminExit {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        opacity: 0;
+        z-index: 9999;
+        transition: opacity 0.3s;
+    }
+
+    #adminExit:hover {
+        opacity: 1;
+    }
+
+    /* ✅ Touch friendly — larger tap targets */
+    @media (max-width: 992px) {
+        .camera-wrapper {
+            height: 350px;
+        }
+        .clock-display {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+
+<div class="container-fluid px-3 mt-2">
+    <div class="row g-3">
+
+        <!-- LEFT: Camera Feed -->
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+
+                <div class="card-header bg-dark text-white d-flex
+                            justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-camera me-2 text-primary"></i>
+                        Live Face Recognition
+                    </h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="clock-display"
+                              id="live-clock"
+                              aria-label="Current time">
+                            00:00:00
+                        </span>
+                        <span class="badge bg-success px-3 py-2"
+                              id="status-label">
+                            <i class="fas fa-circle me-1"
+                               style="font-size:8px"></i>
+                            System Active
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="camera-wrapper">
+
+                        <!-- Live badge -->
+                        <div class="live-badge"
+                             role="status"
+                             aria-label="Live camera feed">
+                            <i class="fas fa-circle me-1"
+                               style="font-size:8px"></i> LIVE
+                        </div>
+
+                        <!-- ✅ Camera stream — src set by JS -->
+                        <img id="video-stream"
+                             data-url="{{ url_for('attendance.video_feed') }}"
+                             alt="Live Camera Feed"
+                             style="width:100%; height:500px;
+                                    object-fit:cover;">
+
+                        <!-- Camera error overlay -->
+                        <div id="camera-error"
+                             class="d-none position-absolute top-50
+                                    start-50 translate-middle
+                                    text-center text-white">
+                            <i class="fas fa-video-slash fa-3x mb-3"></i>
+                            <p class="fw-bold">Camera unavailable</p>
+                            <button class="btn btn-sm btn-light mt-2"
+                                    onclick="retryCameraLoad()">
+                                <i class="fas fa-redo me-1"></i> Retry
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Instructions below camera -->
+                <div class="card-footer bg-dark text-white
+                            text-center py-2">
+                    <small>
+                        <i class="fas fa-info-circle me-1 text-info"></i>
+                        Camera ke samne seedha dekhein
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-users me-1 text-success"></i>
+                        Multiple students simultaneously supported
+                    </small>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: Stats + Logs -->
+        <div class="col-lg-4">
+
+            <!-- Today's Stats -->
+            <div class="card shadow-sm border-0 rounded-4 mb-3">
+                <div class="card-body text-center py-3">
+                    <p class="text-muted small mb-1">Today's Attendance</p>
+                    <h2 class="fw-bold text-primary mb-0"
+                        id="present-count"
+                        aria-live="polite">0</h2>
+                    <p class="text-muted small mb-0">
+                        students marked present
+                    </p>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="card shadow-sm border-0 rounded-4 mb-3">
+                <div class="card-body py-3">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Instructions
+                    </h6>
+                    <ul class="list-unstyled small text-muted mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Camera ke samne seedha dekhein
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Chehre par light honi chahiye
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Mask ya dark chashma na pehnein
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Ek saath multiple students ho sakte hain
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-2"></i>
+                            System automatic attendance mark karega
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Live Logs -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white py-2">
+                    <h6 class="mb-0">
+                        <i class="fas fa-terminal me-2"></i>
+                        Live Attendance Log
+                    </h6>
+                </div>
+                <div class="card-body p-2"
+                     style="height: 280px; overflow-y: auto;"
+                     id="attendance-logs"
+                     aria-live="polite"
+                     aria-label="Live attendance log">
+                    <p class="text-muted small text-center mt-3">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        System initializing...
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="attendance-toast" id="attendanceToast"
+     aria-live="polite"></div>
+
+<!-- Hidden admin exit button -->
+<div id="adminExit">
+    <a href="{{ url_for('dashboard.dashboard_page') }}"
+       class="btn btn-sm btn-dark opacity-75">
+        <i class="fas fa-lock me-1"></i> Admin
+    </a>
+</div>
+
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+
+<script>
+// ✅ Retry camera load
+function retryCameraLoad() {
+    const img = document.getElementById('video-stream');
+    const url = img.dataset.url;
+    document.getElementById('camera-error').classList.add('d-none');
+    img.src = url + '?' + new Date().getTime();
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+
+            <h3 class="fw-bold mb-4">
+                <i class="fas fa-cog text-primary"></i> System Settings
+            </h3>
+
+            <!-- PASSWORD CHANGE -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-key text-warning me-2"></i>
+                        Change Admin Password
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+                    <form action="{{ url_for('settings.settings_page') }}"
+                          method="POST"
+                          id="passwordForm"
+                          novalidate>
+                        <input type="hidden"
+                               name="action"
+                               value="change_password">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    New Password
+                                </label>
+                                <input type="password"
+                                       name="new_password"
+                                       id="newPassword"
+                                       class="form-control"
+                                       minlength="8"
+                                       maxlength="100"
+                                       placeholder="Min 8 characters"
+                                       required>
+                                <div class="form-text small text-muted">
+                                    Min 8 chars, 1 uppercase,
+                                    1 lowercase, 1 number.
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Confirm Password
+                                </label>
+                                <input type="password"
+                                       name="confirm_password"
+                                       id="confirmPassword"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required>
+                                <div id="passError"
+                                     class="text-danger small mt-1 d-none">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    Passwords do not match.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password strength indicator -->
+                        <div class="mb-3">
+                            <div class="progress" style="height: 5px;">
+                                <div id="strengthBar"
+                                     class="progress-bar"
+                                     role="progressbar"
+                                     style="width: 0%"
+                                     aria-valuenow="0"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small id="strengthText"
+                                   class="text-muted"></small>
+                        </div>
+
+                        <button type="submit"
+                                id="pwdSubmitBtn"
+                                class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Update Password
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- HOLIDAY MANAGEMENT -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-calendar-times text-danger me-2"></i>
+                        Holiday Management
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- Add Holiday Form -->
+                    <form action="{{ url_for('settings.add_holiday_route') }}"
+                          method="POST"
+                          class="row g-3 mb-4">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                Date
+                            </label>
+                            <input type="date"
+                                   name="holiday_date"
+                                   class="form-control"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Reason
+                            </label>
+                            <input type="text"
+                                   name="holiday_reason"
+                                   class="form-control"
+                                   placeholder="e.g. Diwali, Republic Day"
+                                   maxlength="100"
+                                   required>
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit"
+                                    class="btn btn-danger w-100">
+                                <i class="fas fa-plus me-1"></i> Add
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Holidays List -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reason</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for holiday in holidays %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-danger-subtle
+                                                     text-danger border
+                                                     border-danger-subtle px-3">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ holiday.date | e }}
+                                        </span>
+                                    </td>
+                                    <td>{{ holiday.reason | e }}</td>
+                                    <td class="text-center">
+                                        <!-- ✅ data-reason used instead of
+                                             inline JS interpolation -->
+                                        <form action="{{ url_for('settings.delete_holiday_route',
+                                                       holiday_id=holiday.id) }}"
+                                              method="POST"
+                                              class="delete-holiday-form"
+                                              data-reason="{{ holiday.reason | e }}"
+                                              style="display:inline;">
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    aria-label="Delete holiday {{ holiday.reason | e }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3"
+                                        class="text-center text-muted py-3">
+                                        No holidays added yet.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEMESTER PROMOTION -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-graduation-cap
+                                  text-success me-2"></i>
+                        Semester Promotion
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- Last promotion info -->
+                    <div class="alert alert-info py-2 mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% if last_promotion %}
+                            Last promotion was done on:
+                            <strong>{{ last_promotion | e }}</strong>
+                        {% else %}
+                            No promotion has been done yet.
+                        {% endif %}
+                    </div>
+
+                    <!-- What will happen -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light
+                                        rounded-3 p-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-arrow-up me-1"></i>
+                                    Students to be Promoted
+                                </h6>
+                                <p class="text-muted small mb-2">
+                                    Semester 1 to 5 students will be
+                                    moved to next semester.
+                                </p>
+                                <div class="mt-1">
+                                    {% for i in range(1, 6) %}
+                                    <span class="badge bg-success-subtle
+                                                 text-success border
+                                                 me-1 mb-1">
+                                        Sem {{ i }} → Sem {{ i+1 }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light
+                                        rounded-3 p-3">
+                                <h6 class="fw-bold text-warning mb-2">
+                                    <i class="fas fa-user-graduate me-1"></i>
+                                    Students to be Graduated
+                                </h6>
+                                <p class="text-muted small mb-2">
+                                    Semester 6 students will be moved
+                                    to Alumni section.
+                                </p>
+                                <span class="badge bg-warning-subtle
+                                             text-warning border">
+                                    Sem 6 → Alumni
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Promotion Form -->
+                    <form action="{{ url_for('settings.promote_students') }}"
+                          method="POST"
+                          id="promoteForm">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Type
+                                <strong class="text-danger">PROMOTE</strong>
+                                to confirm
+                            </label>
+                            <input type="text"
+                                   name="confirm_promote"
+                                   id="confirmPromote"
+                                   class="form-control"
+                                   placeholder="Type PROMOTE here"
+                                   maxlength="10"
+                                   autocomplete="off">
+                            <div class="form-text text-danger small">
+                                ⚠️ This action cannot be undone.
+                                All students will be promoted.
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                id="promoteBtn"
+                                class="btn btn-success"
+                                disabled>
+                            <i class="fas fa-graduation-cap me-2"></i>
+                            Promote All Students
+                        </button>
+
+                    </form>
+
+                    <!-- Promotion History -->
+                    {% if promotion_history %}
+                    <div class="mt-4">
+                        <h6 class="fw-bold text-muted mb-3">
+                            <i class="fas fa-history me-1"></i>
+                            Promotion History
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover
+                                          align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="text-center">
+                                            Promoted
+                                        </th>
+                                        <th class="text-center">
+                                            Graduated
+                                        </th>
+                                        <th>Done By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in promotion_history %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-light
+                                                         text-dark border">
+                                                {{ log.promoted_on | e }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge
+                                                         bg-success px-2">
+                                                {{ log.total_promoted }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning
+                                                         text-dark px-2">
+                                                {{ log.total_graduated }}
+                                            </span>
+                                        </td>
+                                        <td class="text-muted small">
+                                            {{ log.promoted_by | e }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- DANGER ZONE -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4
+                        border-start border-danger border-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Danger Zone
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-1">
+                        Clear Attendance History
+                    </h6>
+                    <p class="text-muted small mb-3">
+                        Ye action saari purani attendance delete kar dega.
+                        Ise wapas nahi laya ja sakta.
+                    </p>
+
+                    <form action="{{ url_for('settings.clear_attendance') }}"
+                          method="POST"
+                          id="clearForm">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Type
+                                <strong class="text-danger">CLEAR</strong>
+                                to confirm
+                            </label>
+                            <input type="text"
+                                   name="confirm_clear"
+                                   id="confirmClear"
+                                   class="form-control"
+                                   placeholder="Type CLEAR here"
+                                   maxlength="10"
+                                   autocomplete="off">
+                        </div>
+
+                        <button type="submit"
+                                id="clearBtn"
+                                class="btn btn-outline-danger"
+                                disabled>
+                            <i class="fas fa-trash-alt me-1"></i>
+                            Clear All Attendance
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <p class="text-muted small">
+                    Software Version: 1.0.0 (Production Build)
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ✅ No inline scripts — all moved to settings.js -->
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+
+{% endblock %}

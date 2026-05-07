@@ -1,0 +1,166 @@
+/* ===============================
+   1. Root Variables (Theme System)
+================================= */
+:root {
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --dark-bg: #1a1d20;
+    --light-gray: #f8f9fa;
+    --border-soft: rgba(0,0,0,0.06);
+    --shadow-soft: 0 8px 20px rgba(0,0,0,0.08);
+    --transition-fast: 0.2s ease;
+}
+
+/* ===============================
+   2. Global Styles
+================================= */
+body {
+    background-color: var(--light-gray);
+    color: #333;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ===============================
+   3. Navbar Styling
+================================= */
+.navbar {
+    border-bottom: 1px solid var(--border-soft);
+    backdrop-filter: blur(6px);
+}
+
+.nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+    transform: translateY(-2px);
+}
+
+/* ===============================
+   4. Cards & Hover Effects
+================================= */
+.card {
+    border-radius: 14px;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-soft) !important;
+}
+
+/* ===============================
+   5. Camera Box Styling
+================================= */
+.camera-container img {
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    border: 3px solid #fff;
+    background-color: #000;
+    max-width: 100%;
+}
+
+/* ===============================
+   6. Scrollable Attendance Logs
+================================= */
+#attendance-logs {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #eee;
+}
+
+#attendance-logs::-webkit-scrollbar {
+    width: 6px;
+}
+
+#attendance-logs::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 10px;
+}
+
+/* ===============================
+   7. Dashboard Stats Cards
+================================= */
+.stats-card {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform var(--transition-fast);
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+}
+
+.stats-card i {
+    opacity: 0.35;
+    transition: all 0.35s ease;
+}
+
+.stats-card:hover i {
+    opacity: 1;
+    transform: scale(1.2) rotate(-8deg);
+}
+
+/* ===============================
+   8. Login Page Card
+================================= */
+.login-card {
+    border-top: 5px solid var(--primary-color);
+    box-shadow: var(--shadow-soft);
+}
+
+/* ===============================
+   9. Table Styling
+================================= */
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13,110,253,0.04);
+}
+
+/* ===============================
+   10. Buttons Enhancement
+================================= */
+.btn-primary {
+    transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+/* ===============================
+   11. Smooth Fade Animation
+================================= */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card-hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+}
+
+/* static/css/style.css */
+
+.row-delete-warning {
+    background-color: #fff5f5;
+    transition: background 0.2s ease;
+}

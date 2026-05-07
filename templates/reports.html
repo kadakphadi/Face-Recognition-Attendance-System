@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h3 class="fw-bold">
+                <i class="fas fa-file-invoice text-primary"></i>
+                Attendance Reports
+            </h3>
+            <p class="text-muted mb-0">
+                {% if view_mode == 'date' %}
+                    Showing attendance for:
+                    <strong class="text-primary">
+                        {{ selected_date | e }}
+                    </strong>
+                {% else %}
+                    Showing overall attendance summary for all students.
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Date Filter -->
+        <div class="col-md-6 text-md-end">
+            <form action="{{ url_for('reports.reports_page') }}"
+                  method="POST"
+                  class="d-inline-flex gap-2 align-items-start">
+
+                <!-- ✅ Keep filter values when searching by date -->
+                <input type="hidden" name="department"
+                       value="{{ selected_dept | e }}">
+                <input type="hidden" name="year"
+                       value="{{ selected_year | e }}">
+                <input type="hidden" name="semester"
+                       value="{{ selected_semester | e }}">
+
+                <div>
+                    <input type="date"
+                           name="report_date"
+                           class="form-control shadow-sm
+                               {% if date_error %}is-invalid{% endif %}"
+                           value="{{ selected_date or '' }}"
+                           max="{{ now().strftime('%Y-%m-%d')
+                                  if now else '' }}"
+                           required>
+
+                    <!-- ✅ Show date error if present -->
+                    {% if date_error %}
+                    <div class="invalid-feedback d-block small mt-1">
+                        <i class="fas fa-exclamation-circle me-1"></i>
+                        {{ date_error | e }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-search"></i> Search
+                </button>
+
+                {% if view_mode == 'date' %}
+                <a href="{{ url_for('reports.reports_page') }}"
+                   class="btn btn-outline-secondary shadow-sm">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+                {% endif %}
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ✅ Filter Bar -->
+    <div class="card shadow-sm border-0 rounded-4 mb-3">
+        <div class="card-body py-3">
+            <form method="GET"
+                  action="{{ url_for('reports.reports_page') }}"
+                  class="row g-3 align-items-end">
+
+                <!-- Department -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">
+                        Department
+                    </label>
+                    <select name="department"
+                            class="form-select form-select-sm">
+                        <option value="">All Departments</option>
+                        <option value="Computer Science"
+                            {{ 'selected' if selected_dept == 'Computer Science' }}>
+                            Computer Science
+                        </option>
+                        <option value="Electrical"
+                            {{ 'selected' if selected_dept == 'Electrical' }}>
+                            Electrical
+                        </option>
+                        <option value="Mechanical"
+                            {{ 'selected' if selected_dept == 'Mechanical' }}>
+                            Mechanical
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Year -->
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold small text-muted">
+                        Year
+                    </label>
+                    <select name="year"
+                            class="form-select form-select-sm">
+                        <option value="">All Years</option>
+                        <option value="1"
+                            {{ 'selected' if selected_year == '1' }}>
+                            1st Year
+                        </option>
+                        <option value="2"
+                            {{ 'selected' if selected_year == '2' }}>
+                            2nd Year
+                        </option>
+                        <option value="3"
+                            {{ 'selected' if selected_year == '3' }}>
+                            3rd Year
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Semester -->
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold small text-muted">
+                        Semester
+                    </label>
+                    <select name="semester"
+                            class="form-select form-select-sm">
+                        <option value="">All Semesters</option>
+                        <option value="1"
+                            {{ 'selected' if selected_semester == '1' }}>
+                            Sem 1
+                        </option>
+                        <option value="2"
+                            {{ 'selected' if selected_semester == '2' }}>
+                            Sem 2
+                        </option>
+                        <option value="3"
+                            {{ 'selected' if selected_semester == '3' }}>
+                            Sem 3
+                        </option>
+                        <option value="4"
+                            {{ 'selected' if selected_semester == '4' }}>
+                            Sem 4
+                        </option>
+                        <option value="5"
+                            {{ 'selected' if selected_semester == '5' }}>
+                            Sem 5
+                        </option>
+                        <option value="6"
+                            {{ 'selected' if selected_semester == '6' }}>
+                            Sem 6
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Search -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">
+                        Search
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text"
+                               id="tableSearch"
+                               class="form-control"
+                               placeholder="Search by name or ID..."
+                               maxlength="50">
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit"
+                            class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <a href="{{ url_for('reports.reports_page') }}"
+                       class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Card -->
+    <div class="card shadow-sm border-0 rounded-4">
+
+        <div class="card-header bg-white py-3 d-flex
+                    justify-content-between align-items-center
+                    flex-wrap gap-2">
+            <h5 class="mb-0 fw-bold text-dark">
+                {% if view_mode == 'date' %}
+                    Date Report:
+                    <span class="text-primary">
+                        {{ selected_date | e }}
+                    </span>
+                {% else %}
+                    Overall Attendance Summary
+                {% endif %}
+            </h5>
+
+            <div class="d-flex gap-2">
+                {% if view_mode == 'date' %}
+                <a href="{{ url_for('reports.export_csv',
+                           date=selected_date,
+                           department=selected_dept,
+                           year=selected_year,
+                           semester=selected_semester) }}"
+                   class="btn btn-outline-success btn-sm">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </a>
+                {% endif %}
+                <button class="btn btn-outline-dark btn-sm"
+                        onclick="window.print()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+
+                <!-- DATE VIEW -->
+                {% if view_mode == 'date' %}
+                <table class="table table-hover mb-0 align-middle"
+                       id="reportTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">S.No</th>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Department</th>
+                            <th>Year</th>
+                            <th>Semester</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance %}
+                        <tr>
+                            <td class="ps-4 text-muted">
+                                {{ loop.index }}
+                            </td>
+                            <td class="fw-bold">
+                                {{ record.student_id | e }}
+                            </td>
+                            <td>{{ record.name | e }}</td>
+                            <td>
+                                <span class="badge bg-info-subtle
+                                             text-info border
+                                             border-info-subtle">
+                                    {{ record.department | e }}
+                                </span>
+                            </td>
+                            <td>Year {{ record.year }}</td>
+                            <td>Sem {{ record.semester }}</td>
+                            <td>
+                                <span class="badge bg-light
+                                             text-dark border">
+                                    {{ record.time | e }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success-subtle
+                                             text-success border
+                                             border-success-subtle px-3">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    {{ record.status | e }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8"
+                                class="text-center py-5 text-muted">
+                                <i class="fas fa-calendar-times fa-3x
+                                          mb-3 d-block opacity-25"></i>
+                                Is date ke liye koi record nahi mila.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- OVERALL VIEW -->
+                {% else %}
+                <table class="table table-hover mb-0 align-middle"
+                       id="reportTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">S.No</th>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Department</th>
+                            <th>Year</th>
+                            <th>Semester</th>
+                            <th class="text-center">Total Days</th>
+                            <th class="text-center">Present Days</th>
+                            <th class="text-center">Absent Days</th>
+                            <th class="text-center">Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in overall %}
+                        <tr>
+                            <td class="ps-4 text-muted">
+                                {{ loop.index }}
+                            </td>
+                            <td class="fw-bold text-primary">
+                                {{ student.student_id | e }}
+                            </td>
+                            <td>{{ student.name | e }}</td>
+                            <td>
+                                <span class="badge bg-info-subtle
+                                             text-info border
+                                             border-info-subtle">
+                                    {{ student.department | e }}
+                                </span>
+                            </td>
+                            <td>Year {{ student.year }}</td>
+                            <td>Sem {{ student.semester }}</td>
+                            <td class="text-center fw-semibold">
+                                {{ student.total_days }}
+                            </td>
+                            <td class="text-center fw-semibold
+                                       text-success">
+                                {{ student.present_days }}
+                            </td>
+                            <td class="text-center fw-semibold
+                                       text-danger">
+                                {{ student.absent_days }}
+                            </td>
+                            <td class="text-center">
+                                {% if student.percentage >= 75 %}
+                                    <span class="badge bg-success px-3">
+                                        {{ student.percentage }}%
+                                    </span>
+                                {% elif student.percentage >= 60 %}
+                                    <span class="badge bg-warning
+                                                 text-dark px-3">
+                                        {{ student.percentage }}%
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger px-3">
+                                        {{ student.percentage }}%
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10"
+                                class="text-center py-5 text-muted">
+                                <i class="fas fa-users fa-3x mb-3
+                                          d-block opacity-25"></i>
+                                No students found for selected filters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Print Styling -->
+<style>
+@media print {
+    nav, footer, form, .btn {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    body {
+        background: white !important;
+    }
+}
+</style>
+
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+
+{% endblock %}

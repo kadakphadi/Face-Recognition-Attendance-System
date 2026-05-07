@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="fas fa-user-graduate me-2 text-warning"></i>
+                Alumni Records
+            </h4>
+            <p class="text-muted small mb-0">
+                All graduated students permanently stored here.
+            </p>
+        </div>
+        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+            Total Alumni: {{ alumni|length }}
+        </span>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body py-3">
+            <form method="GET"
+                  action="{{ url_for('alumni.alumni_page') }}"
+                  class="row g-3 align-items-end">
+
+                <!-- Department -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">
+                        Department
+                    </label>
+                    <select name="department"
+                            class="form-select form-select-sm">
+                        <option value="">All Departments</option>
+                        <option value="Computer Science"
+                            {{ 'selected' if selected_dept == 'Computer Science' }}>
+                            Computer Science
+                        </option>
+                        <option value="Electrical"
+                            {{ 'selected' if selected_dept == 'Electrical' }}>
+                            Electrical
+                        </option>
+                        <option value="Mechanical"
+                            {{ 'selected' if selected_dept == 'Mechanical' }}>
+                            Mechanical
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Passing Year -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">
+                        Passing Year
+                    </label>
+                    <select name="passing_year"
+                            class="form-select form-select-sm">
+                        <option value="">All Years</option>
+                        {% for year in passing_years %}
+                        <option value="{{ year.passing_year }}"
+                            {{ 'selected' if selected_year == year.passing_year|string }}>
+                            {{ year.passing_year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold small text-muted">
+                        Search
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text"
+                               id="alumniSearch"
+                               class="form-control"
+                               placeholder="Search by name or ID..."
+                               maxlength="50">
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit"
+                            class="btn btn-warning btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <a href="{{ url_for('alumni.alumni_page') }}"
+                       class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Alumni Table -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0"
+                       id="alumniTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">S.No</th>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Father's Name</th>
+                            <th>Department</th>
+                            <th class="text-center">Final Semester</th>
+                            <th class="text-center">Passing Year</th>
+                            <th>Graduated On</th>
+                            <th>Mobile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in alumni %}
+                        <tr>
+                            <td class="ps-4 text-muted">
+                                {{ loop.index }}
+                            </td>
+                            <td class="fw-bold text-warning">
+                                <!-- ✅ Escaped student data -->
+                                {{ student.student_id | e }}
+                            </td>
+                            <td>{{ student.name | e }}</td>
+                            <td class="text-muted">
+                                {{ student.father_name | e or '—' }}
+                            </td>
+                            <td>
+                                <span class="badge bg-info-subtle
+                                             text-info border
+                                             border-info-subtle">
+                                    {{ student.department | e }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning-subtle
+                                             text-warning border
+                                             border-warning-subtle px-3">
+                                    Sem {{ student.passing_semester }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success px-3">
+                                    {{ student.passing_year }}
+                                </span>
+                            </td>
+                            <td class="text-muted small">
+                                {{ student.graduated_on | e }}
+                            </td>
+                            <td class="text-muted">
+                                {{ student.mobile_number | e or '—' }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9"
+                                class="text-center py-5 text-muted">
+                                <i class="fas fa-user-graduate fa-3x
+                                          mb-3 d-block opacity-25"></i>
+                                {% if selected_dept or selected_year %}
+                                    No alumni found for selected filters.
+                                {% else %}
+                                    No alumni records yet.
+                                    Students will appear here after
+                                    semester promotion.
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const searchInput = document.getElementById('alumniSearch');
+    const tbody = document.querySelector('#alumniTable tbody');
+
+    function debounce(fn, delay = 250) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
+    }
+
+    function filterAlumni() {
+        if (!tbody || !searchInput) return;
+
+        const term = searchInput.value.trim().toLowerCase();
+        const rows = tbody.querySelectorAll('tr');
+        let found = 0;
+
+        rows.forEach(row => {
+            // ✅ Skip empty state row
+            if (row.cells.length <= 1) return;
+
+            const text = Array.from(row.cells)
+                .map(cell => cell.textContent.toLowerCase())
+                .join(' ');
+
+            const matches = text.includes(term);
+            row.style.display = matches ? '' : 'none';
+            if (matches) found++;
+        });
+
+        // ✅ Show no results message
+        const existing = tbody.querySelector('.no-results-row');
+        if (existing) existing.remove();
+
+        if (found === 0 && term) {
+            const row = document.createElement('tr');
+            row.className = 'no-results-row';
+            const cell = document.createElement('td');
+            cell.colSpan = 9;
+            cell.className = 'text-center py-4 text-muted';
+            // ✅ textContent not innerHTML — safe
+            cell.textContent = `No alumni found matching "${term}"`;
+            row.appendChild(cell);
+            tbody.appendChild(row);
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(filterAlumni));
+    }
+
+});
+</script>
+
+{% endblock %}
