@@ -204,7 +204,8 @@ def register_student():
 
         # 7. Initialize fresh camera
         try:
-            camera = VideoCamera(0)
+            camera_id = current_app.config.get("CAMERA_ID", 0)
+            camera = VideoCamera(camera_id)
             current_app.config["CAMERA"] = camera
 
             # ✅ Longer warmup — discard first 15 frames

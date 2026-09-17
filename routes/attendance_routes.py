@@ -8,6 +8,7 @@ from modules.attendance_marker import AttendanceMarker
 from utils.decorators import login_required
 import cv2
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +177,8 @@ def video_feed():
 
     if camera is None or not camera.is_open():
         try:
-            camera = VideoCamera(0)
+            camera_id = app.config.get("CAMERA_ID", 0)
+            camera = VideoCamera(camera_id)
             app.config["CAMERA"] = camera
 
             # ✅ Single test-read to verify camera is ready

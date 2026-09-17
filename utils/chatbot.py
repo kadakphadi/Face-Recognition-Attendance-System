@@ -289,6 +289,7 @@ class AttendanceChatbot:
                 LEFT JOIN attendance a
                     ON s.student_id = a.student_id
                     AND a.date NOT IN (SELECT date FROM holidays)
+                WHERE COALESCE(s.is_active, 1) = 1
                 GROUP BY s.student_id, s.name, s.department
                 HAVING ROUND(COUNT(a.id) * 100.0 / ?, 2) < ?
                 ORDER BY present_count ASC
@@ -424,6 +425,7 @@ class AttendanceChatbot:
             dept_rows = cursor.execute("""
                 SELECT department, COUNT(*) as total
                 FROM students
+                WHERE COALESCE(is_active, 1) = 1
                 GROUP BY department
                 ORDER BY department
             """).fetchall()
