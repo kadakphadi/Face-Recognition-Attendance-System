@@ -415,14 +415,16 @@ def promote_all_students(promoted_by="admin"):
                     f"Sem {current_sem} → Sem {next_sem}"
                 )
 
-        # Delete graduated students from active table
+        # Delete graduated students from active table (Soft delete to keep attendance history)
         for student_id in graduated_ids:
-            cursor.execute(
-                "DELETE FROM students WHERE student_id = ?",
-                (student_id,)
-            )
+            cursor.execute("""
+                UPDATE students
+                SET is_active = 0,
+                    face_encoding = ?
+                WHERE student_id = ?
+            """, (sqlite3.Binary(b''), student_id))
             logger.info(
-                f"Student {student_id} removed from active students."
+                f"Student {student_id} deactivated (soft delete). Attendance kept."
             )
 
         # Log promotion event
